@@ -2,7 +2,7 @@
 
 The Reader-Writer Problem is a classic scenario in Computer Science where multiple processes concurrently access shared resources.The critical section can be accessed by only one writer or by multiple readers simultaneously at any point of time. Semaphores are used to prevent conflicts and ensure proper process synchronization. However, this approach may result in readers or writers being starved, depending on their priorities. In this context, I have proposed a solution to the Reader-Writer Problem that eliminates starvation.
 
-## Data Structures and Functions Used :
+## Data Structures, Functions and Semaphores Used :
 
 To achieve process synchronization, semaphores are employed, which are associated with a critical section and have a queue (FIFO structure) that keeps track of blocked processes waiting to access the semaphore. When a process enters the `serviceQueue`, it becomes blocked, and once a process signals the semaphore, the process at the front of the `serviceQueue` is activated. The code below outlines the implementation of this approach.
 
@@ -12,15 +12,15 @@ To achieve process synchronization, semaphores are employed, which are associate
 //Process defined
 struct process {
     process* next; //   pointing to the next process
-    bool state = true; //  state represents (active if true) & (blocked/inactive if false)
-    int ID;
+    bool state = false; //   state represents (active if true) & (blocked/inactive if false)
+    int ID = -1; //process ID
 };
 
 //Queue allowing FIFO semaphore
 class serviceQueue {
     process *first, *last;
     int size = 0;
-    int MAX = 100; // max number of waiting processes
+    int MAX = 50; // max number of waiting processes
     public:
         void push(int pid) { 
             if(size == MAX){
@@ -34,13 +34,13 @@ class serviceQueue {
                 if(size == 0)
                     first = last = P;
                 else
-                    last->next = last = P;
+                    last = last->next = P;
             }
         }
         
         process* pop() {
             if(size == 0){
-                return {nullptr,false,-1}; //Returning Null process when empty
+                return {nullptr,false,-1}; //   Returning Null process when empty
             }
             process* nextProcess = first;
             first = first->next;
@@ -54,12 +54,8 @@ class serviceQueue {
 Code for Semaphore
 ``` cpp
 struct semaphore {
-    int value = 1;
+    int value = 1; //initial value of semaphore
     serviceQueue* service_queue = new serviceQueue();
- 
-    semaphore(int n) {
-        value = n; //  n is the number of resources
-    }
 
     void signal(semaphore* s) {
         s->value++;
@@ -78,21 +74,22 @@ struct semaphore {
 
 ## Starve-Free Solution
 
-The starve-free solution uses the `entryMutex` semaphore. The `entryMutex` must be acquired first by any reader or writer before accessing the `CSmutex` or entering the critical section directly. This solution solves the problem of starvation, as multiple readers arriving one after the other will no longer starve the writers. The `rmutex` here is used to In this approach, if a writer arrives in between two readers, and some readers are still in the critical section, the next reader cannot acquire the `entryMutex` as the writer has already acquired it. Once the existing readers leave the critical section, the writer who was waiting would be at the front of the serviceQueue for the `CSmutex` and would acquire it. This process would repeat, ensuring that both readers and writers have equal priority, and neither will starve. Moreover, this method preserves the advantage of readers not having to acquire the `CSmutex` every time another reader is present,resulting in a starvation-free solution to the Reader-Writer problem.
+The starve-free solution uses the `entryMutex` semaphore. The `entryMutex` must be acquired first by any reader or writer before accessing the `CSmutex` or entering the critical section directly. This solution solves the problem of starvation, as multiple readers arriving one after the other will no longer starve the writers. The `rmutex` here is used to give mutually exclusive access to the Rcount(Reader count) variable for the readers. In this approach, if a writer arrives in between two readers, and some readers are still in the critical section, the next reader cannot acquire the `entryMutex` as the writer has already acquired it. Once the existing readers leave the critical section, the writer who was waiting would be at the front of the serviceQueue for the `CSmutex` and would acquire it. This process would repeat, ensuring that both readers and writers have equal priority, and neither will starve. Moreover, this method preserves the advantage of readers not having to acquire the `CSmutex` every time another reader is present,resulting in a starvation-free solution to the Reader-Writer problem.
 
 Here is the code implementation of the problem.
 
 ### Global Variables
 
-Mainly 3 semaphores are employed here CSmutex, rmutex and entryMutex
+Mainly 3 semaphores are employed here : CSmutex, rmutex and entryMutex
 
 ```cpp
 // <INITIALIZATION> //
-int resource = 1;
 int Rcount = 0; //Reader count initially zero
-semaphore* CSmutex = new semaphore(resource); // For access to critical section (either writer or readers)
-semaphore* rmutex = new semaphore(resource); // Counting semaphore for readers
-semaphore* entryMutex = new semaphore(resource); // The game-changing semaphore
+
+semaphore* CSmutex = new semaphore(); // For access to critical section (either writer or readers)
+semaphore* rmutex = new semaphore(); // Counting semaphore for readers
+semaphore* entryMutex = new semaphore(); // The game-changing semaphore
+
 //  At the start of both the reader and writer codes, the semaphore is employed and both READER/WRITER have equal priority to obtain it and enter the critical section
 ```
 ### Starve-Free Reader Implementation
@@ -141,7 +138,7 @@ void Writer(int processId) { // called when WRITER arrives
 Thus the above problem solves the READER-WRITER problem with a starve-free heuristic.
 
 ### Details
-Subhajit Biswas
-21114100
-B.Tech CSE 2Y
+Subhajit Biswas<br>
+21114100<br>
+B.Tech CSE 2Y<br>
 IIT Roorkee
