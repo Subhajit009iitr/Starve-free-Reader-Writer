@@ -6,6 +6,7 @@ The Reader-Writer Problem is a classic scenario in Computer Science where multip
 
 To achieve process synchronization, semaphores are employed, which are associated with a critical section and have a queue (FIFO structure) that keeps track of blocked processes waiting to access the semaphore. When a process enters the `serviceQueue`, it becomes blocked, and once a process signals the semaphore, the process at the front of the `serviceQueue` is activated. The code below outlines the implementation of this approach.
 
+### Process and FIFO structure
 ```cpp
 // <SEMAPHORE CODE> //
 
