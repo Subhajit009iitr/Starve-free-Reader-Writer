@@ -71,6 +71,11 @@ struct semaphore {
     }
 };
 ```
+## Starvation??
+Starvation is a problem when the low-priority process keeps waiting for a long duration of time because of high-priority requests being executed. A stream of high-priority requests stops the low-priority process from obtaining the processor or resources.
+
+## Need for Starve-free solution
+The Classical Solutions of Reader-Writer Problems assigns some priority to either the Readers or the Writer processes that leads to the starvation of the lower priority ones. This biased authority towards either the Writer or the Readers reduces the overall average response time and promotes inefficient utilization of resources. To solve this problem and distribute resources evenly accross all processes we need to make it Starve-free.
 
 ## Starve-Free Solution
 
